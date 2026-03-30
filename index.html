@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NVAE: Rethinking VAE Architecture — A Deep Dive</title>
+<title>NVAE Explained Simply — A Deep Dive</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -25,7 +25,7 @@
     color: var(--text);
     font-family: 'Lora', Georgia, serif;
     font-size: 18px;
-    line-height: 1.85;
+    line-height: 1.9;
     overflow-x: hidden;
   }
   body::before {
@@ -35,7 +35,7 @@
     pointer-events: none; z-index: 999; opacity: 0.4;
   }
 
-  /* ── HERO ── */
+  /* HERO */
   .hero {
     min-height: 100vh; display: grid; place-items: center;
     text-align: center; padding: 4rem 2rem;
@@ -75,7 +75,7 @@
   .hero-sub {
     margin-top: 1.5rem; font-size: 1.15rem; color: var(--muted);
     max-width: 600px; margin-inline: auto;
-    animation: fadeUp 0.8s ease 0.2s both; font-family: 'Lora', serif; font-style: italic;
+    animation: fadeUp 0.8s ease 0.2s both; font-style: italic;
   }
   .hero-meta {
     margin-top: 2.5rem; display: flex; gap: 2rem;
@@ -89,7 +89,7 @@
   @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
   @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ── LAYOUT ── */
+  /* LAYOUT */
   .container { max-width: 780px; margin: 0 auto; padding: 0 2rem; }
   .container-wide { max-width: 1060px; margin: 0 auto; padding: 0 2rem; }
   section { padding: 5rem 0; }
@@ -99,35 +99,52 @@
   p { margin-bottom:1.4rem; color:#ccc9be; }
   .divider { width:60px;height:3px; background:linear-gradient(90deg,var(--accent),var(--accent2)); margin:1.5rem 0 2.5rem; border-radius:2px; }
 
-  /* ── COMPONENTS ── */
-  .concept-box {
+  /* ANALOGY BOX */
+  .analogy {
     background: linear-gradient(135deg, rgba(78,205,196,0.07), rgba(78,205,196,0.03));
     border: 1px solid rgba(78,205,196,0.25);
     border-left: 3px solid var(--accent3);
     border-radius: 10px; padding: 1.5rem 1.75rem; margin: 2rem 0;
   }
-  .concept-box .tag { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--accent3); display:block; margin-bottom:0.6rem; }
-  .concept-box p { color:var(--text); margin:0; font-size:0.97rem; }
-  .concept-box strong { color:var(--accent3); }
+  .analogy .tag { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--accent3); display:block; margin-bottom:0.6rem; }
+  .analogy p { color:var(--text); margin:0; font-size:0.97rem; }
+  .analogy strong { color:var(--accent3); }
 
-  blockquote { border-left:3px solid var(--accent); padding:1rem 0 1rem 2rem; margin:2.5rem 0; font-size:1.2rem; font-style:italic; color:var(--text); position:relative; }
-  blockquote::before { content:'"'; font-family:'Playfair Display',serif; font-size:5rem; color:var(--accent); opacity:0.15; position:absolute; top:-1rem;left:0.5rem; line-height:1; }
+  /* MATH FORMULA */
+  .formula { 
+    background:var(--code-bg); 
+    border:1px solid var(--border); 
+    border-radius:8px; 
+    padding:1.25rem 1.5rem; 
+    margin:1.5rem 0; 
+    font-family:'DM Mono',monospace; 
+    font-size:0.95rem; 
+    color:#d4c5f7; 
+    text-align:center; 
+    overflow-x:auto; 
+  }
+  .formula-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+  }
 
-  code { font-family:'DM Mono',monospace; font-size:0.82em; background:var(--code-bg); border:1px solid var(--border); padding:0.15em 0.45em; border-radius:3px; color:var(--accent3); }
-  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; overflow-x: auto; margin: 2rem 0; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.75; color: #a8c7c4; }
-  pre .kw { color: #c792ea; } pre .fn { color: #82aaff; } pre .str { color: #c3e88d; } pre .cm { color: #546e7a; font-style: italic; }
-
+  /* CARDS */
   .cards-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.5rem; margin:2.5rem 0; }
   .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.75rem; position:relative; overflow:hidden; transition:border-color 0.3s,transform 0.3s; }
   .card:hover { border-color:var(--accent2); transform:translateY(-3px); }
   .card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--accent2),var(--accent3)); opacity:0; transition:opacity 0.3s; }
   .card:hover::before { opacity:1; }
-  .card-icon { font-size:1.5rem; margin-bottom:1rem; display:block; color:var(--accent); }
+  .card-icon { font-size:1.8rem; margin-bottom:1rem; display:block; }
   .card h4 { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--text); margin-bottom:0.5rem; }
   .card p { font-size:0.92rem; color:var(--muted); margin:0; }
 
+  /* ARCH DIAGRAM */
   .arch-diagram { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:2rem; margin:2.5rem 0; overflow-x:auto; }
 
+  /* RESULTS TABLE */
   .results-table { width:100%; border-collapse:collapse; margin:2rem 0; font-family:'DM Mono',monospace; font-size:0.82rem; }
   .results-table th { text-align:left; padding:0.75rem 1rem; background:var(--card); color:var(--accent); font-weight:500; letter-spacing:0.05em; border-bottom:2px solid var(--border); }
   .results-table td { padding:0.7rem 1rem; border-bottom:1px solid var(--border); color:#ccc9be; }
@@ -137,21 +154,25 @@
   .badge-sota { background:rgba(78,205,196,0.15); color:var(--accent3); }
   .badge-new { background:rgba(200,169,110,0.15); color:var(--accent); }
 
+  /* HIGHLIGHT BOX */
   .highlight-box { background:linear-gradient(135deg,rgba(124,111,240,0.08),rgba(200,169,110,0.08)); border:1px solid rgba(124,111,240,0.25); border-radius:10px; padding:2rem; margin:2.5rem 0; }
   .highlight-box .label { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent2); margin-bottom:0.75rem; display:block; }
 
+  /* FLOW PILLS */
   .flow-row { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin:1.5rem 0; font-family:'DM Mono',monospace; font-size:0.82rem; }
   .flow-pill { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:0.4em 0.9em; color:var(--text); white-space:nowrap; }
   .flow-pill.active { background:rgba(124,111,240,0.15); border-color:var(--accent2); color:var(--accent2); }
   .flow-pill.highlight { background:rgba(200,169,110,0.15); border-color:var(--accent); color:var(--accent); }
   .flow-arrow { color:var(--muted); font-size:1rem; }
 
+  /* STEPS */
   .steps { list-style:none; counter-reset:step; margin:2rem 0; }
   .steps li { counter-increment:step; padding:1.25rem 1.25rem 1.25rem 4rem; position:relative; border-left:2px solid var(--border); margin-left:1.5rem; margin-bottom:1rem; }
   .steps li::before { content:counter(step,decimal-leading-zero); position:absolute; left:-1.5rem;top:1.25rem; background:var(--bg); border:2px solid var(--accent2); border-radius:50%; width:3rem;height:3rem; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--accent2); font-weight:500; }
   .steps li strong { display:block; font-family:'Playfair Display',serif; color:var(--text); font-size:1.05rem; margin-bottom:0.35rem; }
   .steps li p { font-size:0.94rem; color:var(--muted); margin:0; }
 
+  /* COMPARE */
   .compare { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin:2.5rem 0; }
   .compare-box { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.5rem; }
   .compare-box h5 { font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border); }
@@ -163,13 +184,13 @@
   .compare-box.before li::before { content:'×'; position:absolute; left:0; color:#ff6b6b; }
   .compare-box.after li::before { content:'✓'; position:absolute; left:0; color:var(--accent3); }
 
+  /* CALLOUT */
   .callout { display:flex; gap:1rem; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.25rem 1.5rem; margin:2rem 0; align-items:flex-start; }
-  .callout-icon { font-size:1.5rem; flex-shrink:0; line-height:1.6; font-family: 'DM Mono', monospace; color: var(--accent2); }
+  .callout-icon { font-size:1.5rem; flex-shrink:0; line-height:1.6; }
   .callout p { margin:0; font-size:0.95rem; color:#ccc9be; }
   .callout strong { color:var(--text); }
 
-  .formula { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:1.25rem 1.5rem; margin:1.5rem 0; font-family:'DM Mono',monospace; font-size:1rem; color:#d4c5f7; text-align:center; overflow-x:auto; }
-
+  /* SEPARATOR */
   .sep { display:flex; align-items:center; gap:1.5rem; margin:4rem 0; }
   .sep::before,.sep::after { content:''; flex:1; height:1px; background:var(--border); }
   .sep span { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); }
@@ -203,13 +224,13 @@
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-tag">NeurIPS 2020 Spotlight · Technical Breakdown</div>
-    <h1>NVAE: Rethinking<br><em>VAE</em> Architecture</h1>
-    <p class="hero-sub">How NVIDIA's Nouveau VAE rewrote the rules of hierarchical image generation through architectural elegance — not just statistical tricks.</p>
+    <div class="hero-tag">NeurIPS 2020 Spotlight · Explained Simply</div>
+    <h1>NVAE: Teaching<br>AI to <em>Imagine</em></h1>
+    <p class="hero-sub">How NVIDIA built an image generator so good it fooled everyone — combining smarter architecture with elegant math to tame the latent space.</p>
     <div class="hero-meta">
       <div class="meta-pill"><span>✦</span> Vahdat & Kautz, NVIDIA</div>
       <div class="meta-pill"><span>✦</span> arXiv:2007.03898</div>
-      <div class="meta-pill"><span>✦</span> 12 min read</div>
+      <div class="meta-pill"><span>✦</span> Concepts & Math Breakdown</div>
     </div>
   </div>
   <div class="scroll-hint">
@@ -221,84 +242,91 @@
 
 <section>
 <div class="container">
-  <span class="section-num">§01 — The Context</span>
-  <h2>The Problem with Generative Architectures</h2>
+  <span class="section-num">§01 — The Big Picture</span>
+  <h2>What's the Problem, Anyway?</h2>
   <div class="divider"></div>
 
-  <p>Variational Autoencoders (VAEs) have historically occupied a unique, yet compromised, position in the generative modelling landscape. They offer <mark>fast, tractable sampling</mark> alongside an interpretable latent space, but their image quality has frequently lagged behind competing methodologies.</p>
+  <p>Imagine you want to teach a computer to draw realistic human faces from scratch — not copy existing ones, but <em>invent</em> entirely new ones. That's generative AI, and it's harder than it sounds.</p>
+
+  <p>There are a few competing approaches. Think of them as different tools for the same job:</p>
 
   <div class="cards-grid">
     <div class="card">
-      <span class="card-icon">⬡</span>
+      <span class="card-icon">🌊</span>
       <h4>Normalizing Flows</h4>
-      <p>Mathematically elegant and exact, but computationally slow and highly memory-intensive during optimization.</p>
+      <p>Very mathematically precise, but slow and memory-hungry. Like a perfectionist who double-checks every single brushstroke before moving on.</p>
     </div>
     <div class="card">
-      <span class="card-icon">⬖</span>
+      <span class="card-icon">📖</span>
       <h4>Autoregressive Models</h4>
-      <p>Unmatched in structural image quality, but severely bottlenecked by sequential pixel-by-pixel generation.</p>
+      <p>Generate images pixel-by-pixel, left to right. Excellent quality, but painfully slow — imagine writing a novel one letter at a time.</p>
     </div>
     <div class="card">
-      <span class="card-icon">⟳</span>
-      <h4>VAEs (The Challenge)</h4>
-      <p>Efficient and parallelizable, but notoriously prone to generating blurry or statistically inconsistent outputs.</p>
+      <span class="card-icon">🎲</span>
+      <h4>VAEs — Our Focus</h4>
+      <p>Fast, flexible, and can generate whole images at once. Historically blurry though — which is exactly the problem NVAE was built to fix.</p>
     </div>
   </div>
 
-  <p>For years, the research community treated the VAE's shortcomings as a purely statistical problem—focusing on tighter evidence lower bounds (ELBO) and exotic normalizing flows. The architecture itself was largely borrowed wholesale from image classifiers.</p>
+  <p>VAEs had a serious reputation problem. Most researchers assumed this was a <em>math problem</em> and kept tweaking equations. NVAE asked a completely different question: <mark>what if the problem is the network design?</mark></p>
 
-  <blockquote>
-    The role of neural network architectures for VAEs is somewhat overlooked, as most previous work borrows architectures from classification tasks — yet VAEs have fundamentally different requirements.
-  </blockquote>
-
-  <p>Classifiers are designed to aggressively discard information to find a label. Generative models must <em>retain</em> information to synthesize details. This philosophical divergence demands a fundamentally different network topology.</p>
+  <div class="analogy">
+    <span class="tag">💡 Analogy</span>
+    <p>It's like assuming a car is slow because of bad fuel. You keep changing the fuel formula for years. Then someone pops the hood and says: <strong>"The engine just needs a redesign."</strong> That's NVAE.</p>
+  </div>
 </div>
 </section>
 
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="container">
   <span class="section-num">§02 — The Foundation</span>
-  <h2>Hierarchical Representation</h2>
+  <h2>The Math Behind the Magic</h2>
   <div class="divider"></div>
 
-  <p>To understand NVAE, we must first establish the mathematical foundation. A standard VAE optimizes the Evidence Lower BOund (ELBO), balancing reconstruction fidelity against a prior constraint:</p>
+  <p>Let's build this idea from scratch. A VAE has two halves that work together like a pair of teammates: an <strong>Encoder</strong> (the analyst) that squishes an image into a compact code, and a <strong>Decoder</strong> (the artist) that reconstructs the image from that code.</p>
+
+  <p>Mathematically, the VAE trains by balancing two forces pulling in opposite directions. It optimizes something called the <strong>Evidence Lower BOund (ELBO)</strong>:</p>
 
   <div class="formula">
-    $$ \mathcal{L}_{VAE}(x) = \mathbb{E}_{q(z|x)}[\log p(x|z)] - D_{KL}(q(z|x) \| p(z)) $$
+    𝓛<sub>VAE</sub>(x) = E<sub>q(z|x)</sub>[log p(x|z)] − KL( q(z|x) ‖ p(z) )
   </div>
+  <p class="formula-sub">The Standard VAE Loss Function</p>
 
-  <p>While conceptually sound, a single latent vector $z$ is insufficient to capture the vast structural complexity of high-resolution images. NVAE employs <strong>hierarchical deep latent spaces</strong>, breaking the representation into specialized sequential groups.</p>
+  <p>The first term is <strong>Reconstruction Quality</strong> ("make your output look like the input"). The second term is the <strong>KL Penalty</strong> ("don't let your internal map get too wild and chaotic — stay close to the prior").</p>
+
+  <h3>Why Layer It? The Hierarchy Idea</h3>
+  <p>One layer of compression isn't enough for complex images. NVAE stacks <strong>multiple levels of latent variables</strong> (up to 36 groups). The top level captures the big picture ("smiling person"), while lower levels fill in finer details ("thin eyebrows").</p>
 
   <div class="flow-row">
-    <div class="flow-pill highlight">z₁ (8×8) global structure</div>
+    <div class="flow-pill highlight">z₁ (8×8) global mood</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-pill active">z₂ (16×16) primary features</div>
+    <div class="flow-pill active">z₂ (16×16) face shape</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-pill active">z₃ (32×32) secondary features</div>
+    <div class="flow-pill active">z₃ (32×32) features</div>
     <span class="flow-arrow">→</span>
     <div class="flow-pill">...</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-pill">z_L (128×128) fine texture</div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-pill highlight">256×256 Output</div>
+    <div class="flow-pill">z_L (128×128) fine detail</div>
   </div>
 
-  <p>When partitioned into multiple groups $z = \{z_1, z_2, \dots, z_L\}$, the ELBO becomes a sum over sequential dependencies:</p>
+  <p>But here is the catch. When you break the code into a hierarchy, the ELBO equation becomes a sum over all those groups:</p>
 
   <div class="formula">
-    $$ \mathcal{L}_{VAE}(x) = \mathbb{E}_{q}[\log p(x|z)] - D_{KL}(q(z_1|x) \| p(z_1)) - \sum_{l \ge 2} \mathbb{E}_{q}[D_{KL}(q(z_l|x, z_{<l}) \| p(z_l|z_{<l}))] $$
+    𝓛<sub>VAE</sub>(x) = E<sub>q</sub>[log p(x|z)] − KL(q(z₁|x) ‖ p(z₁)) − Σ<sub>l≥2</sub> E[KL(q(z_l|x,z&lt;l) ‖ p(z_l|z&lt;l))]
   </div>
+  <p class="formula-sub">The Hierarchical ELBO</p>
 
-  <p>This formulation is powerful but highly unstable. Because the Kullback-Leibler (KL) divergence terms are theoretically unbounded, minor gradient mismatches across dozens of hierarchical layers can trigger explosive optimization failure. Solving this instability is NVAE's core achievement.</p>
+  <p>Each of those KL terms in the sum is <em>unbounded</em>. If the encoder and decoder drift apart even slightly across dozens of layers, you get explosive, unrecoverable gradient updates. This instability is why training deep VAEs was historically so painful.</p>
+
 </div>
 </section>
 
 <section>
 <div class="container">
-  <span class="section-num">§03 — Core Design</span>
-  <h2>The Bidirectional Architecture</h2>
+  <span class="section-num">§03 — The Architecture</span>
+  <h2>Solving the Instability</h2>
   <div class="divider"></div>
-  <p>NVAE seamlessly integrates four architectural innovations. To understand how they fit together, examine the bidirectional flow of the network during inference and generation.</p>
+  <p>NVAE's breakthrough comes from combining architectural choices with clever math to tame this unbounded KL divergence.</p>
 </div>
 
 <div class="container-wide" style="margin-top:2rem;">
@@ -310,26 +338,26 @@
         <marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4ecdc4" opacity="0.8"/></marker>
       </defs>
 
-      <text x="440" y="24" text-anchor="middle" class="svg-title">NVAE Bidirectional Processing Pipeline</text>
+      <text x="440" y="24" text-anchor="middle" class="svg-title">How NVAE Encodes and Generates — Step by Step</text>
 
       <rect x="30" y="38" width="160" height="22" rx="4" fill="rgba(124,111,240,0.1)" stroke="rgba(124,111,240,0.3)" stroke-width="1"/>
-      <text x="110" y="53" text-anchor="middle" class="svg-label" style="fill:#7c6ff0;font-size:10px;">① ENCODER (Bottom-Up)</text>
+      <text x="110" y="53" text-anchor="middle" class="svg-label" style="fill:#7c6ff0;font-size:10px;">① ENCODER reads image</text>
 
       <rect x="330" y="38" width="160" height="22" rx="4" fill="rgba(200,169,110,0.1)" stroke="rgba(200,169,110,0.3)" stroke-width="1"/>
-      <text x="410" y="53" text-anchor="middle" class="svg-label" style="fill:#c8a96e;font-size:10px;">② SHARED TOP-DOWN</text>
+      <text x="410" y="53" text-anchor="middle" class="svg-label" style="fill:#c8a96e;font-size:10px;">② INFER latent z at each level</text>
 
       <rect x="640" y="38" width="160" height="22" rx="4" fill="rgba(78,205,196,0.1)" stroke="rgba(78,205,196,0.3)" stroke-width="1"/>
-      <text x="720" y="53" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;font-size:10px;">③ GENERATOR (Top-Down)</text>
+      <text x="720" y="53" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;font-size:10px;">③ GENERATOR draws image</text>
 
       <rect x="75" y="72" width="70" height="28" rx="5" fill="none" stroke="#4ecdc4" stroke-width="1.5"/>
-      <text x="110" y="90" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">Input $x$</text>
+      <text x="110" y="90" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">Real Image</text>
 
       <rect x="75" y="128" width="70" height="28" rx="5" fill="#1e1e2e" stroke="#7c6ff0" stroke-width="1"/>
-      <text x="110" y="147" text-anchor="middle" class="svg-label">Residual Cell</text>
+      <text x="110" y="147" text-anchor="middle" class="svg-label">Enc. Block</text>
       <rect x="75" y="196" width="70" height="28" rx="5" fill="#1e1e2e" stroke="#7c6ff0" stroke-width="1"/>
-      <text x="110" y="215" text-anchor="middle" class="svg-label">Residual Cell</text>
+      <text x="110" y="215" text-anchor="middle" class="svg-label">Enc. Block</text>
       <rect x="75" y="264" width="70" height="28" rx="5" fill="#1e1e2e" stroke="#7c6ff0" stroke-width="1"/>
-      <text x="110" y="283" text-anchor="middle" class="svg-label">Residual Cell</text>
+      <text x="110" y="283" text-anchor="middle" class="svg-label">Enc. Block</text>
 
       <line x1="110" y1="100" x2="110" y2="126" stroke="#7c6ff0" stroke-width="1.5" marker-end="url(#a1)"/>
       <line x1="110" y1="156" x2="110" y2="194" stroke="#7c6ff0" stroke-width="1.5" marker-end="url(#a1)"/>
@@ -337,26 +365,26 @@
 
       <circle cx="230" cy="142" r="20" fill="none" stroke="#7c6ff0" stroke-width="1.5"/>
       <text x="230" y="138" text-anchor="middle" class="svg-label-sm">sample</text>
-      <text x="230" y="150" text-anchor="middle" class="svg-label-sm" style="fill:#7c6ff0;">$z_1$</text>
+      <text x="230" y="150" text-anchor="middle" class="svg-label-sm" style="fill:#7c6ff0;">z₁</text>
 
       <circle cx="230" cy="210" r="20" fill="none" stroke="#7c6ff0" stroke-width="1.5"/>
       <text x="230" y="206" text-anchor="middle" class="svg-label-sm">sample</text>
-      <text x="230" y="218" text-anchor="middle" class="svg-label-sm" style="fill:#7c6ff0;">$z_2$</text>
+      <text x="230" y="218" text-anchor="middle" class="svg-label-sm" style="fill:#7c6ff0;">z₂</text>
 
       <circle cx="230" cy="278" r="20" fill="none" stroke="#7c6ff0" stroke-width="1.5"/>
       <text x="230" y="274" text-anchor="middle" class="svg-label-sm">sample</text>
-      <text x="230" y="286" text-anchor="middle" class="svg-label-sm" style="fill:#7c6ff0;">$z_3$</text>
+      <text x="230" y="286" text-anchor="middle" class="svg-label-sm" style="fill:#7c6ff0;">z₃</text>
 
       <line x1="145" y1="142" x2="208" y2="142" stroke="#7c6ff0" stroke-width="1" marker-end="url(#a1)" opacity="0.7"/>
       <line x1="145" y1="210" x2="208" y2="210" stroke="#7c6ff0" stroke-width="1" marker-end="url(#a1)" opacity="0.7"/>
       <line x1="145" y1="278" x2="208" y2="278" stroke="#7c6ff0" stroke-width="1" marker-end="url(#a1)" opacity="0.7"/>
 
       <rect x="350" y="128" width="90" height="28" rx="5" fill="#1e1e2e" stroke="#c8a96e" stroke-width="1"/>
-      <text x="395" y="147" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">Prior / Post.</text>
+      <text x="395" y="147" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">Top-Down</text>
       <rect x="350" y="196" width="90" height="28" rx="5" fill="#1e1e2e" stroke="#c8a96e" stroke-width="1"/>
-      <text x="395" y="215" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">Prior / Post.</text>
+      <text x="395" y="215" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">Top-Down</text>
       <rect x="350" y="264" width="90" height="28" rx="5" fill="#1e1e2e" stroke="#c8a96e" stroke-width="1"/>
-      <text x="395" y="283" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">Prior / Post.</text>
+      <text x="395" y="283" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">Top-Down</text>
 
       <circle cx="318" cy="142" r="12" fill="none" stroke="#c8a96e" stroke-width="1.2"/>
       <text x="318" y="147" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">+</text>
@@ -373,13 +401,13 @@
       <line x1="330" y1="278" x2="348" y2="278" stroke="#c8a96e" stroke-width="1" marker-end="url(#a2)" opacity="0.7"/>
 
       <rect x="372" y="72" width="46" height="26" rx="4" fill="#1e1e2e" stroke="#c8a96e" stroke-width="1" stroke-dasharray="3,2"/>
-      <text x="395" y="88" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">$h$ param</text>
+      <text x="395" y="88" text-anchor="middle" class="svg-label" style="fill:#c8a96e;">h param</text>
       <line x1="395" y1="98" x2="395" y2="126" stroke="#c8a96e" stroke-width="1.5" marker-end="url(#a2)"/>
       <line x1="395" y1="156" x2="395" y2="194" stroke="#c8a96e" stroke-width="1.5" marker-end="url(#a2)"/>
       <line x1="395" y1="224" x2="395" y2="262" stroke="#c8a96e" stroke-width="1.5" marker-end="url(#a2)"/>
 
       <rect x="660" y="72" width="80" height="26" rx="4" fill="#1e1e2e" stroke="#4ecdc4" stroke-width="1" stroke-dasharray="3,2"/>
-      <text x="700" y="88" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">$h$ param</text>
+      <text x="700" y="88" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">h param</text>
 
       <rect x="660" y="128" width="80" height="28" rx="5" fill="#1e1e2e" stroke="#4ecdc4" stroke-width="1"/>
       <text x="700" y="147" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">Gen. Block</text>
@@ -389,17 +417,17 @@
       <text x="700" y="283" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">Gen. Block</text>
 
       <rect x="660" y="345" width="80" height="28" rx="5" fill="none" stroke="#4ecdc4" stroke-width="2"/>
-      <text x="700" y="363" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">Output $\hat{x}$</text>
+      <text x="700" y="363" text-anchor="middle" class="svg-label" style="fill:#4ecdc4;">New Image x̂</text>
 
       <circle cx="610" cy="142" r="20" fill="none" stroke="#4ecdc4" stroke-width="1.5"/>
       <text x="610" y="138" text-anchor="middle" class="svg-label-sm">sample</text>
-      <text x="610" y="150" text-anchor="middle" class="svg-label-sm" style="fill:#4ecdc4;">$z_1$</text>
+      <text x="610" y="150" text-anchor="middle" class="svg-label-sm" style="fill:#4ecdc4;">z₁</text>
       <circle cx="610" cy="210" r="20" fill="none" stroke="#4ecdc4" stroke-width="1.5"/>
       <text x="610" y="206" text-anchor="middle" class="svg-label-sm">sample</text>
-      <text x="610" y="218" text-anchor="middle" class="svg-label-sm" style="fill:#4ecdc4;">$z_2$</text>
+      <text x="610" y="218" text-anchor="middle" class="svg-label-sm" style="fill:#4ecdc4;">z₂</text>
       <circle cx="610" cy="278" r="20" fill="none" stroke="#4ecdc4" stroke-width="1.5"/>
       <text x="610" y="274" text-anchor="middle" class="svg-label-sm">sample</text>
-      <text x="610" y="286" text-anchor="middle" class="svg-label-sm" style="fill:#4ecdc4;">$z_3$</text>
+      <text x="610" y="286" text-anchor="middle" class="svg-label-sm" style="fill:#4ecdc4;">z₃</text>
 
       <line x1="630" y1="142" x2="658" y2="142" stroke="#4ecdc4" stroke-width="1" marker-end="url(#a3)" opacity="0.7"/>
       <line x1="630" y1="210" x2="658" y2="210" stroke="#4ecdc4" stroke-width="1" marker-end="url(#a3)" opacity="0.7"/>
@@ -413,107 +441,111 @@
       <line x1="700" y1="292" x2="700" y2="343" stroke="#4ecdc4" stroke-width="1.5" marker-end="url(#a3)"/>
 
       <rect x="30" y="405" width="10" height="10" rx="2" fill="none" stroke="#7c6ff0" stroke-width="1.5"/>
-      <text x="46" y="415" class="svg-label-sm">Encoder path</text>
+      <text x="46" y="415" class="svg-label-sm">Encoder (reads image upward)</text>
       <rect x="220" y="405" width="10" height="10" rx="2" fill="none" stroke="#c8a96e" stroke-width="1.5"/>
-      <text x="236" y="415" class="svg-label-sm">Shared inference path</text>
+      <text x="236" y="415" class="svg-label-sm">Shared top-down inference</text>
       <rect x="410" y="405" width="10" height="10" rx="2" fill="none" stroke="#4ecdc4" stroke-width="1.5"/>
-      <text x="426" y="415" class="svg-label-sm">Generator path</text>
+      <text x="426" y="415" class="svg-label-sm">Generator (draws image downward)</text>
       <circle cx="640" cy="410" r="5" fill="none" stroke="#7c6ff0" stroke-width="1.5"/>
-      <text x="651" y="415" class="svg-label-sm">Sampled latent space</text>
+      <text x="651" y="415" class="svg-label-sm">Latent z (a "concept")</text>
     </svg>
-    <p style="text-align:center;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:1rem;">Fig. 1 — NVAE's bidirectional encoder (left) and generative model (right). Shared top-down computations eliminate redundant inference passes.</p>
+    <p style="text-align:center;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:1rem;">Fig. 1 — The encoder reads bottom-up, inferring a latent "concept" z at each level. The generator then reads top-down, drawing the image scale-by-scale.</p>
   </div>
 </div>
 
 <div class="container" style="margin-top:2rem;">
 
-  <h3>1. Depthwise Separable Convolutions</h3>
-  <p>Generative models require massive receptive fields to model long-range correlations effectively. However, scaling a standard $k \times k$ convolution over $C$ channels costs $k^2C^2$ parameters per layer, making deep hierarchies computationally prohibitive.</p>
+  <h3>Residual Distributions: Predict the Change, Not the Whole Answer</h3>
 
-  <div class="concept-box">
-    <span class="tag">System Design Insight</span>
-    <p>By decoupling spatial filtering from channel mixing, depthwise separable convolutions drop the parameter cost to just <strong>$k^2C$</strong>. A $5 \times 5$ layer over 128 channels drops from ~400,000 to just 3,200 parameters, allowing NVAE to stack expansive receptive fields safely without memory blowout.</p>
+  <p>In a standard hierarchical VAE, the encoder and the decoder each <em>independently</em> guess where a latent variable should be. If they disagree, the KL penalty explodes.</p>
+
+  <div class="analogy">
+    <span class="tag">💡 Analogy — Two Navigators</span>
+    <p>Picture two navigators on a ship. One says "we're off the coast of Mumbai." The other says "we're in the middle of the Arabian Sea." The disagreement is catastrophic. But if one navigator says "we're here" and the other says "actually, shift 10km east," <strong>the delta is small and manageable</strong>.</p>
   </div>
 
-  <h3>2. Reclaiming Batch Normalization</h3>
-  <p>Prior SOTA architectures (like IAF-VAE and BIVA) deliberately replaced Batch Normalization (BN) with Weight Normalization (WN), theorizing that BN injects detrimental noise into the latent space. NVAE's authors recognized that the actual failure mode wasn't training noise, but <strong>evaluation drift</strong>.</p>
-
-  <p>During evaluation, BN shifts from batch statistics to running averages. In a deeply layered hierarchical network, tiny distributional shifts at lower layers compound catastrophically at higher scales. The solution is elegant: regularize the norm of BN's scaling parameters to suppress evaluation divergence.</p>
-
-<pre><code><span class="cm"># NVAE generative residual cell (simplified)</span>
-<span class="kw">class</span> <span class="fn">NVAECell</span>(nn.Module):
-    <span class="kw">def</span> <span class="fn">forward</span>(self, x):
-        h = self.bn1(x)           <span class="cm"># Norm-regularized BN at start</span>
-        h = self.conv_1x1_up(h)   <span class="cm"># Expand channels</span>
-        h = self.swish(h)         <span class="cm"># Swish outperforms ELU</span>
-        h = self.depthwise_5x5(h) <span class="cm"># Efficient large receptive field</span>
-        h = self.swish(h)
-        h = self.conv_1x1_down(h) <span class="cm"># Project back</span>
-        h = self.bn2(h)           <span class="cm"># Norm-regularized BN at end</span>
-        h = self.se(h)            <span class="cm"># Squeeze-and-Excitation attention</span>
-        <span class="kw">return</span> x + h              <span class="cm"># Residual connection</span></code></pre>
-
-  <h3>3. Residual Normal Distributions</h3>
-  <p>Instead of forcing the encoder to independently predict absolute parameters for the posterior distribution, NVAE uses <strong>Relative Error Correction</strong>. The encoder is tasked strictly with predicting <em>residuals</em> (deltas) relative to the prior:</p>
+  <p>Instead of having the encoder predict absolute Normal distribution parameters, NVAE has it predict <em>residuals</em> (deltas) relative to the prior:</p>
 
   <div class="formula">
-    $$ q(z_l | z_{<l}, x) = \mathcal{N}(\mu(z_{<l}) + \Delta\mu, \sigma(z_{<l}) \cdot \Delta\sigma) $$
+    q(zᵢ_l | z&lt;l, x) = 𝒩(μᵢ(z&lt;l) + Δμᵢ, σᵢ(z&lt;l) · Δσᵢ)
   </div>
 
-  <p>This formulation heavily constrains the geometry of the KL divergence. When the prior distribution shifts during the early, chaotic phases of training, the posterior naturally tracks it, neutralizing the explosive divergence that typically ruins deep hierarchical VAEs.</p>
+  <p>This reformulates the math so the network only depends on the delta parameters <code>Δμ</code> and <code>Δσ</code>. When the prior moves, the posterior naturally moves with it — preventing the explosive divergence that kills standard hierarchical VAEs.</p>
 
-  <h3>4. Bounding the Lipschitz Constant via Spectral Regularization</h3>
-  <p>Residual distributions minimize KL spikes, but they cannot bound them theoretically. If the encoder layers become overly sensitive (i.e., highly reactive to minor input perturbations), the latent space fractures.</p>
+  <h3>Spectral Regularisation: Giving the Network a Chill Pill</h3>
+
+  <p>Even with residual distributions, training can still blow up. The deeper problem: the encoder can become too "reactive". Tiny changes in the image cause wildly different outputs, making the latent space chaotic.</p>
+
+  <div class="analogy">
+    <span class="tag">💡 Analogy — A Thermostat</span>
+    <p>Spectral regularisation acts like a thermostat installed at every layer. It measures how reactive each layer is, and adds a small penalty whenever any layer overreacts. The whole network stays smooth, calm, and predictable.</p>
+  </div>
+
+  <p>Mathematically, NVAE adds a smoothness loss that penalizes the largest singular value (s) of each convolutional layer:</p>
 
   <div class="formula">
-    $$ \mathcal{L}_{SR} = \lambda \sum_i s^{(i)} $$
+    𝓛<sub>SR</sub> = λ · Σᵢ s⁽ⁱ⁾
   </div>
 
-  <p>NVAE introduces a smoothness loss ($\mathcal{L}_{SR}$) targeting the largest singular value $s^{(i)}$ of each convolution. By dynamically limiting the Lipschitz constant layer-by-layer, the network maintains bounded, stable posteriors across all 36 groups.</p>
+  <p>To further stabilize this, NVAE introduces a specific training recipe:</p>
+  
+  <ol class="steps">
+    <li>
+      <strong>KL Warm-up</strong>
+      <p>The KL penalty (β) is slowly turned up from 0 to 1 over the first 30% of training, letting reconstruction settle first.</p>
+    </li>
+    <li>
+      <strong>KL Balancing</strong>
+      <p>Balancing coefficients (γ_l) push the model to use latent variables evenly across groups, so the top levels don't get lazy.</p>
+    </li>
+    <li>
+      <strong>Spectral Regularization</strong>
+      <p>The penalty parameter (λ) acts as the firm boundary, keeping the encoder's outputs strictly bounded layer-by-layer.</p>
+    </li>
+  </ol>
 
 </div>
 </section>
 
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="container">
-  <span class="section-num">§04 — Engineering for Scale</span>
-  <h2>Memory Optimizations</h2>
+  <span class="section-num">§04 — Engineering</span>
+  <h2>Making It Actually Run</h2>
   <div class="divider"></div>
 
-  <p>Architectural elegance is moot if it induces Out-Of-Memory (OOM) errors. Scaling NVAE to 36 latent groups on 256×256 imagery required two critical pipeline interventions that virtually doubled the throughput:</p>
+  <p>A beautiful architecture is useless if it runs out of GPU memory. NVAE uses two practical engineering tricks that together nearly <strong>doubled training throughput</strong>:</p>
 
   <div class="callout">
-    <span class="callout-icon">01</span>
-    <div>
-      <p><strong>Mixed-Precision Training (FP16):</strong></p>
-      <p>Convolutional pathways are aggressively down-casted to 16-bit floating point, safely clearing ~40% of GPU VRAM while preserving stable updates via PyTorch/APEX integration.</p>
-    </div>
+    <span class="callout-icon">🧊</span>
+    <p><strong>Mixed Precision (FP16):</strong> Most of the numbers flying around inside the network can be stored with half the usual precision without meaningfully hurting the result. Think of it like rounding 3.14159 to 3.14 — close enough for the job, but takes half the space. This saves roughly 40% of GPU memory.</p>
   </div>
 
   <div class="callout">
-    <span class="callout-icon">02</span>
-    <div>
-      <p><strong>Gradient Checkpointing (BN+Swish Fusion):</strong></p>
-      <p>Rather than storing full intermediate tensors for the backward pass, BN and Swish operations are tightly fused. Discarding intermediate maps and recomputing them during backprop reclaims another 18% memory with negligible latency overhead.</p>
-    </div>
+    <span class="callout-icon">♻️</span>
+    <p><strong>Gradient Checkpointing:</strong> Normally, every layer saves a copy of its output for the backward pass. NVAE fuses two operations — BN and Swish — into a single step, saving only one result instead of two. When it needs the intermediate value, it simply recomputes it on the fly. This saves another 18% memory with almost no speed cost.</p>
   </div>
 
+  <div class="highlight-box">
+    <span class="label">Why Sampling Speed Matters</span>
+    <p>Because NVAE generates the whole image at once (not pixel-by-pixel), it samples a full 256×256 face in just <mark>56 milliseconds</mark>. The comparable model MaCow takes 434 ms — roughly 8× slower — for similar quality. In real applications, that gap is the difference between a usable tool and a frustrating one.</p>
+  </div>
 </div>
 </section>
 
 <section>
 <div class="container">
   <span class="section-num">§05 — Results</span>
-  <h2>Empirical Performance</h2>
+  <h2>How Well Does It Actually Work?</h2>
   <div class="divider"></div>
 
-  <p>The standard benchmark for generative quality is <strong>bits per dimension (bpd)</strong>. A lower bpd indicates a model that structurally understands the data distribution more efficiently.</p>
+  <p>NVAE was tested on six standard image datasets. The metric is <strong>bits per dimension (bpd)</strong> — lower is better. Intuitively: the better a model understands the structure of images, the fewer bits it needs to describe them.</p>
 
   <div style="overflow-x:auto;">
   <table class="results-table">
     <thead>
       <tr>
         <th>Method</th>
+        <th>MNIST ↓</th>
         <th>CIFAR-10 ↓</th>
         <th>CelebA 64 ↓</th>
         <th>CelebA HQ 256 ↓</th>
@@ -521,31 +553,29 @@
     </thead>
     <tbody>
       <tr class="winner">
-        <td><strong>NVAE w/ flow</strong> <span class="badge badge-sota">SOTA VAE</span></td>
+        <td><strong>NVAE w/ flow</strong> <span class="badge badge-sota">Best VAE</span></td>
+        <td>78.19</td>
         <td><strong>2.91</strong></td>
         <td><strong>2.03</strong></td>
         <td><strong>0.70</strong></td>
       </tr>
       <tr class="winner">
         <td><strong>NVAE w/o flow</strong> <span class="badge badge-new">Lean</span></td>
+        <td>78.01</td>
         <td>2.93</td>
         <td>2.04</td>
         <td>—</td>
       </tr>
       <tr>
-        <td>BIVA (previous SOTA VAE)</td>
+        <td>BIVA (previous best VAE)</td>
+        <td>78.41</td>
         <td>3.08</td>
         <td>2.48</td>
         <td>—</td>
       </tr>
       <tr>
-        <td>VFlow (Normalizing Flow)</td>
-        <td>2.98</td>
+        <td>PixelSNAIL (autoregressive — slow)</td>
         <td>—</td>
-        <td>—</td>
-      </tr>
-      <tr>
-        <td>PixelSNAIL (Autoregressive)</td>
         <td>2.85</td>
         <td>—</td>
         <td>—</td>
@@ -554,45 +584,50 @@
   </table>
   </div>
 
-  <p style="font-size:0.85rem;color:var(--muted);font-family:'DM Mono',monospace;">* NVAE effectively matches AR quality while remaining non-autoregressive. Sampling a 256x256 image takes just 56ms (vs ~434ms for comparable autoregressive flows like MaCow).</p>
+  <h3>The Most Surprising Finding</h3>
+  <p>Look at the "NVAE w/o flow" row. The version <em>without</em> any additional normalising flows in the encoder <strong>still beats every previous non-autoregressive model</strong> by a clear margin. That's remarkable — it means the architectural improvements alone were enough. The extra statistical machinery (flows) is a nice bonus, not the engine driving the improvement.</p>
 
-  <div class="concept-box">
-    <span class="tag">The Crucial Insight</span>
-    <p>Notice that NVAE <em>without</em> normalizing flows thoroughly outperforms the prior SOTA (BIVA). This decisively proves the paper's thesis: <strong>the perceived ceiling of VAEs was an architectural bottleneck, not an inherently flawed loss function.</strong></p>
+  <div class="analogy">
+    <span class="tag">💡 What This Reveals</span>
+    <p>For years, researchers assumed VAEs needed fancier math to compete. NVAE shows they mainly needed a better-designed network. It's like discovering your camera was blurry not because of bad film, but because <strong>the lens just needed cleaning</strong>.</p>
   </div>
 </div>
 </section>
 
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="container">
-  <span class="section-num">§06 — Conclusion</span>
-  <h2>Why This Paper Matters</h2>
+  <span class="section-num">§06 — So What?</span>
+  <h2>Why Does This Matter?</h2>
   <div class="divider"></div>
 
-  <p>NVAE systematically dismantled the assumption that Variational Autoencoders were fundamentally limited by their objective function. By addressing structural flaws with thoughtful engineering, it delivered a paradigm shift:</p>
+  <p>NVAE isn't just a benchmark win. It shifts how we think about generative model research as a whole.</p>
+
+  <blockquote>
+    You don't always need fancier math. Sometimes you just need a better-designed network.
+  </blockquote>
 
   <div class="cards-grid">
     <div class="card">
       <span class="card-icon">🏗️</span>
-      <h4>Domain-Specific Topology</h4>
-      <p>Classification architectures are lossy by design. Generative models demand specialized, information-preserving pathways.</p>
+      <h4>Architecture Is Underrated</h4>
+      <p>The field spent years improving the VAE's loss function. NVAE shows the network design was the bottleneck — a lesson that applies far beyond VAEs.</p>
     </div>
     <div class="card">
       <span class="card-icon">⚡</span>
-      <h4>The Speed Advantage</h4>
-      <p>By retaining the unconditional decoder structure, NVAE maintains the traditional VAE speed advantage, generating output 8× faster than heavily parameterized competitors.</p>
+      <h4>Speed Isn't Sacrificed</h4>
+      <p>NVAE matches near-autoregressive quality while generating images 8× faster than comparable models. For real applications, that difference is everything.</p>
     </div>
     <div class="card">
-      <span class="card-icon">🔬</span>
-      <h4>BN Rehabilitation</h4>
-      <p>Batch Normalization is viable in extreme depths when properly regularized against evaluation-time distributional drift.</p>
+      <span class="card-icon">🔓</span>
+      <h4>256×256 Is Now Possible</h4>
+      <p>NVAE was the first VAE ever trained at this resolution. It opened a new frontier for high-resolution generative modelling with tractable sampling.</p>
     </div>
   </div>
 
   <div class="highlight-box" style="margin-top:2.5rem;">
-    <span class="label">Implementation & Next Steps</span>
-    <p>NVIDIA has fully open-sourced the NVAE architecture alongside pretrained weights. Diving into the codebase offers excellent exposure to PyTorch APEX optimizations and mixed-precision constraints.</p>
-    <p style="margin:0;"><a href="https://github.com/NVlabs/NVAE" target="_blank">→ github.com/NVlabs/NVAE</a> &nbsp;·&nbsp; PyTorch &nbsp;·&nbsp; NeurIPS 2020 Spotlight</p>
+    <span class="label">Try It Yourself</span>
+    <p>NVAE is fully open-sourced with pretrained checkpoints for all datasets in the paper. You can load a model and sample from it in a handful of PyTorch lines.</p>
+    <p style="margin:0;"><a href="https://github.com/NVlabs/NVAE" target="_blank">→ github.com/NVlabs/NVAE</a> &nbsp;·&nbsp; 1.1k stars &nbsp;·&nbsp; PyTorch &nbsp;·&nbsp; NeurIPS 2020 Spotlight</p>
   </div>
 </div>
 </section>
@@ -600,12 +635,11 @@
 <footer>
 <div class="container">
   <p>Based on <strong>NVAE: A Deep Hierarchical Variational Autoencoder</strong></p>
-  <p>Arash Vahdat & Jan Kautz · NVIDIA · NeurIPS 2020 Spotlight · <a href="https://arxiv.org/abs/2007.03898" target="_blank">arXiv:2007.03898</a></p>
+  <p>Arash Vahdat & Jan Kautz · NVIDIA · NeurIPS 2020 Spotlight</p>
 </div>
 </footer>
 
 <script>
-  // Reading progress bar
   const progress = document.getElementById('progress');
   window.addEventListener('scroll', () => {
     const h = document.documentElement;
