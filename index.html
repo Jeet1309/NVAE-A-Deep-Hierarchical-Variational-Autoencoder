@@ -3,12 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NVAE Explained Simply — A Deep Dive</title>
+<title>NVAE: A Deep Hierarchical VAE Explained</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
 <style>
   :root {
     --bg: #0a0a0f;
@@ -114,25 +110,17 @@
   .analogy p { color:var(--text); margin:0; font-size:0.97rem; }
   .analogy strong { color:var(--accent3); }
 
-  /* MATH FORMULA */
-  .formula { 
-    background:var(--code-bg); 
-    border:1px solid var(--border); 
-    border-radius:8px; 
-    padding:1.25rem 1.5rem; 
-    margin:1.5rem 0; 
-    font-size:1.05rem; 
-    color:#d4c5f7; 
-    text-align:center; 
-    overflow-x:auto; 
-  }
-  .formula-sub {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 0.5rem;
-      text-align: center;
-      font-family: 'DM Mono', monospace;
-  }
+  /* BLOCKQUOTE */
+  blockquote { border-left:3px solid var(--accent); padding:1rem 0 1rem 2rem; margin:2.5rem 0; font-size:1.2rem; font-style:italic; color:var(--text); position:relative; }
+  blockquote::before { content:'"'; font-family:'Playfair Display',serif; font-size:5rem; color:var(--accent); opacity:0.15; position:absolute; top:-1rem;left:0.5rem; line-height:1; }
+
+  /* CODE & PRE */
+  code { font-family:'DM Mono',monospace; font-size:0.82em; background:var(--code-bg); border:1px solid var(--border); padding:0.15em 0.45em; border-radius:3px; color:var(--accent3); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:1.5rem; overflow-x:auto; margin:2rem 0; font-family:'DM Mono',monospace; font-size:0.82rem; line-height:1.75; color:#a8c7c4; }
+  pre code { background: none; border: none; padding: 0; color: inherit; font-size: 1em; }
+  pre .kw { color: #c792ea; }
+  pre .fn { color: #82aaff; }
+  pre .cm { color: #546e7a; font-style: italic; }
 
   /* CARDS */
   .cards-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.5rem; margin:2.5rem 0; }
@@ -193,6 +181,9 @@
   .callout p { margin:0; font-size:0.95rem; color:#ccc9be; }
   .callout strong { color:var(--text); }
 
+  /* FORMULA */
+  .formula { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:1.25rem 1.5rem; margin:1.5rem 0; font-family:'DM Mono',monospace; font-size:0.85rem; color:#d4c5f7; text-align:center; overflow-x:auto; }
+
   /* SEPARATOR */
   .sep { display:flex; align-items:center; gap:1.5rem; margin:4rem 0; }
   .sep::before,.sep::after { content:''; flex:1; height:1px; background:var(--border); }
@@ -227,13 +218,13 @@
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-tag">NeurIPS 2020 Spotlight · Explained Simply</div>
-    <h1>NVAE: Teaching<br>AI to <em>Imagine</em></h1>
-    <p class="hero-sub">How NVIDIA built an image generator so good it fooled everyone — combining smarter architecture with elegant math to tame the latent space.</p>
+    <div class="hero-tag">NeurIPS 2020 Spotlight · Explained</div>
+    <h1>NVAE: Rethinking<br><em>Generative</em> Architecture</h1>
+    <p class="hero-sub">How NVIDIA rewrote the rules of hierarchical image generation through architectural elegance — combining tractable sampling with state-of-the-art quality.</p>
     <div class="hero-meta">
       <div class="meta-pill"><span>✦</span> Vahdat & Kautz, NVIDIA</div>
       <div class="meta-pill"><span>✦</span> arXiv:2007.03898</div>
-      <div class="meta-pill"><span>✦</span> Concepts & Math Breakdown</div>
+      <div class="meta-pill"><span>✦</span> Deep Dive</div>
     </div>
   </div>
   <div class="scroll-hint">
@@ -245,13 +236,13 @@
 
 <section>
 <div class="container">
-  <span class="section-num">§01 — The Big Picture</span>
-  <h2>What's the Problem, Anyway?</h2>
+  <span class="section-num">§01 — Context & The Problem</span>
+  <h2>The Bottleneck in VAEs</h2>
   <div class="divider"></div>
 
-  <p>Imagine you want to teach a computer to draw realistic human faces from scratch — not copy existing ones, but <em>invent</em> entirely new ones. That's generative AI, and it's harder than it sounds.</p>
+  <p>Variational Autoencoders (VAEs) have long held a special place in the generative modelling landscape. They offer something that competing models struggle to match cleanly: <mark>fast, tractable sampling</mark> combined with a meaningful latent space you can easily encode into.</p>
 
-  <p>There are a few competing approaches. Think of them as different tools for the same job:</p>
+  <p>Think of them alongside the other tools for the job:</p>
 
   <div class="cards-grid">
     <div class="card">
@@ -262,43 +253,43 @@
     <div class="card">
       <span class="card-icon">📖</span>
       <h4>Autoregressive Models</h4>
-      <p>Generate images pixel-by-pixel, left to right. Excellent quality, but painfully slow — imagine writing a novel one letter at a time.</p>
+      <p>Generate images pixel-by-pixel. Excellent quality, but painfully slow — imagine writing a novel one letter at a time.</p>
     </div>
     <div class="card">
       <span class="card-icon">🎲</span>
       <h4>VAEs — Our Focus</h4>
-      <p>Fast, flexible, and can generate whole images at once. Historically blurry though — which is exactly the problem NVAE was built to fix.</p>
+      <p>Fast, flexible, and generate whole images at once. Historically blurry though — which is exactly the problem NVAE was built to fix.</p>
     </div>
   </div>
 
-  <p>VAEs had a serious reputation problem. Most researchers assumed this was a <em>math problem</em> and kept tweaking equations. NVAE asked a completely different question: <mark>what if the problem is the network design?</mark></p>
+  <p>For years, the research community assumed this blurriness was a <em>statistical problem</em> and kept tweaking the equations and objective functions. The architecture itself? Mostly borrowed wholesale from image classifiers. But classifiers are built to throw information away, whereas VAEs must retain it.</p>
 
-  <div class="analogy">
-    <span class="tag">💡 Analogy</span>
-    <p>It's like assuming a car is slow because of bad fuel. You keep changing the fuel formula for years. Then someone pops the hood and says: <strong>"The engine just needs a redesign."</strong> That's NVAE.</p>
-  </div>
+  <blockquote>
+    The role of neural network architectures for VAEs is somewhat overlooked. We can achieve state-of-the-art generative performance by carefully designing networks — without changing the objective function.
+  </blockquote>
+
+  <p>That is the central thesis of NVAE: architecture design is an orthogonal, underexplored axis for improving VAEs.</p>
 </div>
 </section>
 
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="container">
-  <span class="section-num">§02 — The Foundation</span>
-  <h2>The Math Behind the Magic</h2>
+  <span class="section-num">§02 — Mathematical Foundation</span>
+  <h2>The Deep Hierarchical ELBO</h2>
   <div class="divider"></div>
 
-  <p>Let's build this idea from scratch. A VAE has two halves that work together like a pair of teammates: an <strong>Encoder</strong> (the analyst) that squishes an image into a compact code, and a <strong>Decoder</strong> (the artist) that reconstructs the image from that code.</p>
+  <p>To understand what NVAE fixes, we must look at the core formulation. A standard VAE learns a generative model <code>p(x,z) = p(z)p(x|z)</code>. The network consists of an encoder ("The Analyst" acting as an approximate posterior) and a decoder ("The Artist" acting as the generative model).</p>
 
-  <p>Mathematically, the VAE trains by balancing two forces pulling in opposite directions. It optimizes something called the <strong>Evidence Lower BOund (ELBO)</strong>:</p>
+  <p>Because the true posterior <code>p(z|x)</code> is intractable, training optimizes the Evidence Lower BOund (ELBO):</p>
 
   <div class="formula">
-    $$\mathcal{L}_{VAE}(x) = \mathbb{E}_{q(z|x)}[\log p(x|z)] - D_{KL}(q(z|x) \| p(z))$$
+    𝓛<sub>VAE</sub>(x) = E<sub>q(z|x)</sub>[log p(x|z)] − KL( q(z|x) ‖ p(z) )
   </div>
-  <p class="formula-sub">The Standard VAE Loss Function</p>
 
-  <p>The first term is <strong>Reconstruction Quality</strong> ("make your output look like the input"). The second term is the <strong>KL Penalty</strong> ("don't let your internal map get too wild and chaotic — stay close to the prior").</p>
+  <p>The first term is the reconstruction quality; the second acts as a penalty forcing the internal latent representation to stay close to a known prior, preventing chaos. But complex images require deeper representations.</p>
 
-  <h3>Why Layer It? The Hierarchy Idea</h3>
-  <p>One layer of compression isn't enough for complex images. NVAE stacks <strong>multiple levels of latent variables</strong> (up to 36 groups). The top level captures the big picture ("smiling person"), while lower levels fill in finer details ("thin eyebrows").</p>
+  <h3>Hierarchy and the "Unbounded KL" Problem</h3>
+  <p>Deep hierarchical VAEs partition the latent space into multiple groups — like different zoom levels on a map. The top level captures global mood, while lower levels fill in finer textures.</p>
 
   <div class="flow-row">
     <div class="flow-pill highlight">z₁ (8×8) global mood</div>
@@ -307,19 +298,18 @@
     <span class="flow-arrow">→</span>
     <div class="flow-pill active">z₃ (32×32) features</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-pill">...</div>
+    <div class="flow-pill">z₄ (64×64) texture</div>
     <span class="flow-arrow">→</span>
-    <div class="flow-pill">z_L (128×128) fine detail</div>
+    <div class="flow-pill highlight">256×256 image</div>
   </div>
 
-  <p>But here is the catch. When you break the code into a hierarchy, the ELBO equation becomes a sum over all those groups:</p>
+  <p>When you expand the ELBO across <code>L</code> groups of latent variables <code>z = {z₁, z₂, …, z_L}</code>, it becomes a sum over groups:</p>
 
   <div class="formula">
-    $$\mathcal{L}_{VAE}(x) = \mathbb{E}_{q}[\log p(x|z)] - D_{KL}(q(z_1|x) \| p(z_1)) - \sum_{l \ge 2} \mathbb{E}_{q}[D_{KL}(q(z_l|x, z_{<l}) \| p(z_l|z_{<l}))]$$
+    𝓛<sub>VAE</sub>(x) = E<sub>q(z|x)</sub>[log p(x|z)] − KL(q(z₁|x) ‖ p(z₁)) − Σ<sub>l≥2</sub> E[KL(q(z_l|x,z&lt;l) ‖ p(z_l|z&lt;l))]
   </div>
-  <p class="formula-sub">The Hierarchical ELBO</p>
 
-  <p>Each of those KL terms in the sum is <em>unbounded</em>. If the encoder and decoder drift apart even slightly across dozens of layers, you get explosive, unrecoverable gradient updates. This instability is why training deep VAEs was historically so painful.</p>
+  <p>Here lies the historical problem: <strong>each KL term is unbounded</strong>. In a network with 36 layers (like NVAE), if the encoder and decoder drift apart even slightly, the resulting gradient spike can completely destabilize training. Keeping this stable is NVAE's greatest triumph.</p>
 
 </div>
 </section>
@@ -327,9 +317,9 @@
 <section>
 <div class="container">
   <span class="section-num">§03 — The Architecture</span>
-  <h2>Solving the Instability</h2>
+  <h2>Four Ideas That Changed Everything</h2>
   <div class="divider"></div>
-  <p>NVAE's breakthrough comes from combining architectural choices with clever math to tame this unbounded KL divergence.</p>
+  <p>NVAE solves these historical VAE issues through four interlocking architectural pillars. Before diving into the specifics, let's visualize how the entire network processes an image scale-by-scale.</p>
 </div>
 
 <div class="container-wide" style="margin-top:2rem;">
@@ -452,60 +442,75 @@
       <circle cx="640" cy="410" r="5" fill="none" stroke="#7c6ff0" stroke-width="1.5"/>
       <text x="651" y="415" class="svg-label-sm">Latent z (a "concept")</text>
     </svg>
-    <p style="text-align:center;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:1rem;">Fig. 1 — The encoder reads bottom-up, inferring a latent "concept" z at each level. The generator then reads top-down, drawing the image scale-by-scale.</p>
+    <p style="text-align:center;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:1rem;">Fig. 1 — NVAE's bidirectional encoder (left) and generative model (right). Shared top-down computations eliminate redundant inference passes.</p>
   </div>
 </div>
 
 <div class="container" style="margin-top:2rem;">
 
-  <h3>Residual Distributions: Predict the Change, Not the Whole Answer</h3>
+  <h3>Idea #1 & #2 — The NVAE Generative Cell</h3>
 
-  <p>In a standard hierarchical VAE, the encoder and the decoder each <em>independently</em> guess where a latent variable should be. If they disagree, the KL penalty explodes.</p>
+  <p>The generative model's residual cell is NVAE's defining building block. It draws inspiration from classification architectures like MobileNetV2, but re-engineers them to retain information rather than compress it. Here is how NVAE redesigns the cell:</p>
 
-  <div class="analogy">
-    <span class="tag">💡 Analogy — Two Navigators</span>
-    <p>Picture two navigators on a ship. One says "we're off the coast of Mumbai." The other says "we're in the middle of the Arabian Sea." The disagreement is catastrophic. But if one navigator says "we're here" and the other says "actually, shift 10km east," <strong>the delta is small and manageable</strong>.</p>
+  <div class="compare">
+    <div class="compare-box before">
+      <h5>MobileNetV2 Block</h5>
+      <ul>
+        <li>No BN at extremes</li>
+        <li>Depthwise conv</li>
+        <li>ReLU activation</li>
+        <li>No channel attention</li>
+      </ul>
+    </div>
+    <div class="compare-box after">
+      <h5>NVAE Generative Cell</h5>
+      <ul>
+        <li>BN at start and end</li>
+        <li>Depthwise sep. conv 5×5</li>
+        <li>Swish activation</li>
+        <li>Squeeze-and-Excitation</li>
+      </ul>
+    </div>
   </div>
 
-  <p>Instead of having the encoder predict absolute Normal distribution parameters, NVAE has it predict <em>residuals</em> (deltas) relative to the prior:</p>
+  <p><strong>1. Depthwise Separable Convolutions:</strong> A regular 5×5 convolution over 128 channels uses roughly 400,000 parameters. A depthwise separable version splits the spatial and channel math, dropping the count to just 3,200. This enables massive receptive fields — crucial for modelling long-range correlations like facial symmetry — at a tiny fraction of the cost.</p>
+
+  <p><strong>2. Reclaiming Batch Normalization:</strong> Previous VAE leaders deliberately avoided BN because the noise introduced by the mismatch between training statistics and evaluation running averages compounded catastrophically in deep networks. NVAE fixes this by regularizing the norm of BN's scaling parameters. Combined with the smoother Swish activation, BN becomes highly stable.</p>
+
+<pre><code><span class="cm"># NVAE generative residual cell (simplified PyTorch concept)</span>
+<span class="kw">class</span> <span class="fn">NVAECell</span>(nn.Module):
+    <span class="kw">def</span> <span class="fn">forward</span>(self, x):
+        h = self.bn1(x)           <span class="cm"># Reclaimed BN at start</span>
+        h = self.conv_1x1_up(h)   <span class="cm"># Expand channels ×E</span>
+        h = self.swish(h)
+        h = self.depthwise_5x5(h) <span class="cm"># Large receptive field, cheap compute</span>
+        h = self.swish(h)
+        h = self.conv_1x1_down(h) <span class="cm"># Project back</span>
+        h = self.bn2(h)           <span class="cm"># BN at end</span>
+        h = self.se(h)            <span class="cm"># Squeeze-and-Excitation attention</span>
+        <span class="kw">return</span> x + h              <span class="cm"># Residual connection</span></code></pre>
+
+  <h3>Idea #3 — Residual Normal Distributions</h3>
+
+  <p>In a standard hierarchical VAE, if the encoder and decoder disagree independently on where a latent variable should be, the training signal explodes. Picture two navigators on a ship calculating positions independently. The disagreement is catastrophic.</p>
+
+  <p>NVAE's encoder doesn't predict absolute normal parameters. It predicts <strong>how much to adjust</strong> the prior's parameters:</p>
 
   <div class="formula">
-    $$q(z_l | z_{<l}, x) = \mathcal{N}(\mu(z_{<l}) + \Delta\mu, \sigma(z_{<l}) \cdot \Delta\sigma)$$
+    q(zᵢ_l | z&lt;l, x) = 𝒩(μᵢ(z&lt;l) + Δμᵢ, σᵢ(z&lt;l) · Δσᵢ)
   </div>
 
-  <p>This reformulates the math so the network only depends on the delta parameters \(\Delta\mu\) and \(\Delta\sigma\). When the prior moves, the posterior naturally moves with it — preventing the explosive divergence that kills standard hierarchical VAEs.</p>
+  <p>By predicting deltas (<code>Δμ</code> and <code>Δσ</code>), the KL divergence geometry stays well-behaved. When the prior shifts during early training, the posterior shifts smoothly alongside it.</p>
 
-  <h3>Spectral Regularisation: Giving the Network a Chill Pill</h3>
+  <h3>Idea #4 — Spectral Regularization</h3>
 
-  <p>Even with residual distributions, training can still blow up. The deeper problem: the encoder can become too "reactive". Tiny changes in the image cause wildly different outputs, making the latent space chaotic.</p>
-
-  <div class="analogy">
-    <span class="tag">💡 Analogy — A Thermostat</span>
-    <p>Spectral regularisation acts like a thermostat installed at every layer. It measures how reactive each layer is, and adds a small penalty whenever any layer overreacts. The whole network stays smooth, calm, and predictable.</p>
-  </div>
-
-  <p>Mathematically, NVAE adds a smoothness loss that penalizes the largest singular value (\(s^{(i)}\)) of each convolutional layer:</p>
+  <p>Even with residual distributions, training can still blow up. NVAE employs <strong>spectral regularization</strong> as a smooth constraint. It penalizes the largest singular value of each convolutional layer to limit the network's Lipschitz constant:</p>
 
   <div class="formula">
-    $$\mathcal{L}_{SR} = \lambda \sum_i s^{(i)}$$
+    𝓛<sub>SR</sub> = λ · Σᵢ s⁽ⁱ⁾
   </div>
 
-  <p>To further stabilize this, NVAE introduces a specific training recipe:</p>
-  
-  <ol class="steps">
-    <li>
-      <strong>KL Warm-up</strong>
-      <p>The KL penalty (\(\beta\)) is slowly turned up from 0 to 1 over the first 30% of training, letting reconstruction settle first.</p>
-    </li>
-    <li>
-      <strong>KL Balancing</strong>
-      <p>Balancing coefficients (\(\gamma_l\)) push the model to use latent variables evenly across groups, so the top levels don't get lazy.</p>
-    </li>
-    <li>
-      <strong>Spectral Regularization</strong>
-      <p>The penalty parameter (\(\lambda\)) acts as the firm boundary, keeping the encoder's outputs strictly bounded layer-by-layer.</p>
-    </li>
-  </ol>
+  <p>where <code>s⁽ⁱ⁾</code> is estimated via a power iteration update. This ensures the encoder's outputs stay bounded, keeping the KL divergence manageable across all 36 layers. The authors found that gradient clipping or statically bounding variables hurt image quality, whereas spectral regularization stabilizes training while actively <em>boosting</em> performance.</p>
 
 </div>
 </section>
@@ -513,24 +518,26 @@
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="container">
   <span class="section-num">§04 — Engineering</span>
-  <h2>Making It Actually Run</h2>
+  <h2>Making It Trainable</h2>
   <div class="divider"></div>
 
-  <p>A beautiful architecture is useless if it runs out of GPU memory. NVAE uses two practical engineering tricks that together nearly <strong>doubled training throughput</strong>:</p>
+  <p>A beautiful architecture is useless if it runs out of GPU memory. Training a 36-group hierarchical VAE on 256×256 images is a massive compute challenge. NVAE uses two practical engineering tricks that together nearly <strong>doubled training throughput</strong>:</p>
 
   <div class="callout">
     <span class="callout-icon">🧊</span>
-    <p><strong>Mixed Precision (FP16):</strong> Most of the numbers flying around inside the network can be stored with half the usual precision without meaningfully hurting the result. Think of it like rounding 3.14159 to 3.14 — close enough for the job, but takes half the space. This saves roughly 40% of GPU memory.</p>
+    <p><strong>Mixed Precision (FP16):</strong> Using NVIDIA APEX, operations like convolutions are cast to half precision. This saves roughly 40% of GPU memory without meaningfully degrading the final gradient updates, allowing for much larger batch sizes.</p>
   </div>
 
   <div class="callout">
     <span class="callout-icon">♻️</span>
-    <p><strong>Gradient Checkpointing:</strong> Normally, every layer saves a copy of its output for the backward pass. NVAE fuses two operations — BN and Swish — into a single step, saving only one result instead of two. When it needs the intermediate value, it simply recomputes it on the fly. This saves another 18% memory with almost no speed cost.</p>
+    <p><strong>Gradient Checkpointing:</strong> Normally, every layer saves its output for the backward pass. NVAE fuses the Batch Normalization and Swish operations into a single step, saving only one result instead of two. When the backward pass needs the intermediate value, it recomputes it dynamically, saving another 18% memory with negligible speed cost.</p>
   </div>
 
+  <p>Together, these tricks pushed CIFAR-10 training from 34 to 64 images per second, and made the 256×256 experiments viable on 24×32GB GPUs.</p>
+
   <div class="highlight-box">
-    <span class="label">Why Sampling Speed Matters</span>
-    <p>Because NVAE generates the whole image at once (not pixel-by-pixel), it samples a full 256×256 face in just <mark>56 milliseconds</mark>. The comparable model MaCow takes 434 ms — roughly 8× slower — for similar quality. In real applications, that gap is the difference between a usable tool and a frustrating one.</p>
+    <span class="label">The Speed Advantage Preserved</span>
+    <p>Because NVAE generates the whole image at once (no autoregressive pixel-by-pixel dependencies), it samples a full 256×256 face in just <mark>56 milliseconds</mark> on a Titan V. The comparable model MaCow takes 434 ms — roughly 8× slower — for similar quality. The VAE speed advantage is kept entirely intact.</p>
   </div>
 </div>
 </section>
@@ -538,25 +545,25 @@
 <section>
 <div class="container">
   <span class="section-num">§05 — Results</span>
-  <h2>How Well Does It Actually Work?</h2>
+  <h2>State of the Art</h2>
   <div class="divider"></div>
 
-  <p>NVAE was tested on six standard image datasets. The metric is <strong>bits per dimension (bpd)</strong> — lower is better. Intuitively: the better a model understands the structure of images, the fewer bits it needs to describe them.</p>
+  <p>NVAE was tested across benchmark datasets. The metric is <strong>bits per dimension (bpd)</strong> — lower is better. It measures how well the model understands the structural distribution of the images.</p>
 
   <div style="overflow-x:auto;">
   <table class="results-table">
     <thead>
       <tr>
         <th>Method</th>
-        <th>MNIST ↓</th>
-        <th>CIFAR-10 ↓</th>
-        <th>CelebA 64 ↓</th>
-        <th>CelebA HQ 256 ↓</th>
+        <th>MNIST (nats)</th>
+        <th>CIFAR-10 (bpd)</th>
+        <th>CelebA 64 (bpd)</th>
+        <th>CelebA HQ 256 (bpd)</th>
       </tr>
     </thead>
     <tbody>
       <tr class="winner">
-        <td><strong>NVAE w/ flow</strong> <span class="badge badge-sota">Best VAE</span></td>
+        <td><strong>NVAE w/ flow</strong> <span class="badge badge-sota">SOTA VAE</span></td>
         <td>78.19</td>
         <td><strong>2.91</strong></td>
         <td><strong>2.03</strong></td>
@@ -577,6 +584,20 @@
         <td>—</td>
       </tr>
       <tr>
+        <td>IAF-VAE</td>
+        <td>79.10</td>
+        <td>3.11</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>VFlow (flow model)</td>
+        <td>—</td>
+        <td>2.98</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
         <td>PixelSNAIL (autoregressive — slow)</td>
         <td>—</td>
         <td>2.85</td>
@@ -587,49 +608,46 @@
   </table>
   </div>
 
-  <h3>The Most Surprising Finding</h3>
-  <p>Look at the "NVAE w/o flow" row. The version <em>without</em> any additional normalising flows in the encoder <strong>still beats every previous non-autoregressive model</strong> by a clear margin. That's remarkable — it means the architectural improvements alone were enough. The extra statistical machinery (flows) is a nice bonus, not the engine driving the improvement.</p>
+  <p style="font-size:0.85rem;color:var(--muted);font-family:'DM Mono',monospace;">↓ = lower is better. NVAE beats all prior non-autoregressive models and nearly matches the extremely slow autoregressive ones.</p>
 
-  <div class="analogy">
-    <span class="tag">💡 What This Reveals</span>
-    <p>For years, researchers assumed VAEs needed fancier math to compete. NVAE shows they mainly needed a better-designed network. It's like discovering your camera was blurry not because of bad film, but because <strong>the lens just needed cleaning</strong>.</p>
-  </div>
+  <h3>The Most Revealing Ablation</h3>
+  <p>Look at the "NVAE w/o flow" row. Even without any additional normalizing flows in the encoder to boost the posterior, the model <strong>beats every previous VAE and flow model</strong>. This definitively proves the paper's core thesis: architectural improvements alone were enough to bridge the performance gap.</p>
 </div>
 </section>
 
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="container">
-  <span class="section-num">§06 — So What?</span>
+  <span class="section-num">§06 — Takeaways</span>
   <h2>Why Does This Matter?</h2>
   <div class="divider"></div>
 
-  <p>NVAE isn't just a benchmark win. It shifts how we think about generative model research as a whole.</p>
+  <p>NVAE shifts how we think about generative model research.</p>
 
   <blockquote>
-    You don't always need fancier math. Sometimes you just need a better-designed network.
+    You don't always need fancier statistical bounds. Sometimes you just need a better-designed network.
   </blockquote>
 
   <div class="cards-grid">
     <div class="card">
       <span class="card-icon">🏗️</span>
       <h4>Architecture Is Underrated</h4>
-      <p>The field spent years improving the VAE's loss function. NVAE shows the network design was the bottleneck — a lesson that applies far beyond VAEs.</p>
+      <p>The field spent years improving the VAE's loss function. NVAE shows the network design was the bottleneck all along.</p>
     </div>
     <div class="card">
-      <span class="card-icon">⚡</span>
-      <h4>Speed Isn't Sacrificed</h4>
-      <p>NVAE matches near-autoregressive quality while generating images 8× faster than comparable models. For real applications, that difference is everything.</p>
+      <span class="card-icon">🔬</span>
+      <h4>BN Rehabilitation</h4>
+      <p>Batch normalization can work flawlessly in deep generative models — the training/eval mismatch was the real villain, easily solved by parameter norm regularization.</p>
     </div>
     <div class="card">
       <span class="card-icon">🔓</span>
-      <h4>256×256 Is Now Possible</h4>
-      <p>NVAE was the first VAE ever trained at this resolution. It opened a new frontier for high-resolution generative modelling with tractable sampling.</p>
+      <h4>Interpretable Scales</h4>
+      <p>Because of the hierarchy, top groups naturally encode global structure (face shape), while bottom groups encode fine texture. You can control generation at each level independently.</p>
     </div>
   </div>
 
   <div class="highlight-box" style="margin-top:2.5rem;">
     <span class="label">Try It Yourself</span>
-    <p>NVAE is fully open-sourced with pretrained checkpoints for all datasets in the paper. You can load a model and sample from it in a handful of PyTorch lines.</p>
+    <p>NVAE is fully open-sourced under NVIDIA's license. The official PyTorch implementation includes pretrained checkpoints and training scripts for all datasets in the paper.</p>
     <p style="margin:0;"><a href="https://github.com/NVlabs/NVAE" target="_blank">→ github.com/NVlabs/NVAE</a> &nbsp;·&nbsp; 1.1k stars &nbsp;·&nbsp; PyTorch &nbsp;·&nbsp; NeurIPS 2020 Spotlight</p>
   </div>
 </div>
@@ -638,7 +656,8 @@
 <footer>
 <div class="container">
   <p>Based on <strong>NVAE: A Deep Hierarchical Variational Autoencoder</strong></p>
-  <p>Arash Vahdat & Jan Kautz · NVIDIA · NeurIPS 2020 Spotlight</p>
+  <p>Arash Vahdat & Jan Kautz · NVIDIA · NeurIPS 2020 Spotlight · <a href="https://arxiv.org/abs/2007.03898" target="_blank">arXiv:2007.03898</a></p>
+  <p style="margin-top:1rem;font-size:0.72rem;opacity:0.5;">Blog post synthesis for educational purposes · All results from the original paper</p>
 </div>
 </footer>
 
